@@ -1,15 +1,15 @@
 import pygame
 import time
 
-def createChessboard(gameDisplay):
+def createChessboard(gameDisplay,n):
 
 	gameDisplay.fill((255,255,255))
 
 	xdiff = 50
 	ydiff = 50
 
-	for h in range(8):
-		for w in range(8):
+	for h in range(n):
+		for w in range(n):
 			if not h % 2:
 				if not w % 2: 
 
@@ -27,11 +27,13 @@ def createChessboard(gameDisplay):
 					pygame.draw.rect(gameDisplay,(0,0,0),(x,y,xdiff,ydiff))
 
 
+
 def initializeQueen(x,y,gameDisplay):
 
 	queen  = pygame.image.load("queen.png")
 	
 	gameDisplay.blit(queen,(x*50+5,y*50+5))
+
 
 
 def main():
@@ -40,10 +42,11 @@ def main():
 
 	n = int(input("Enter grid size:"))
 
-	visited = [[False for _ in range(n)] for _ in range(n)]
+	Sx, Sy = [int(x) for x in input("Enter knight coords:").split()]
+	Tx, Ty = [int(x) for x in input("Enter queen coords:").split()]
 
-	Sx, Sy = [int(x) for x in input().split()]
-	Tx, Ty = [int(x) for x in input().split()]
+
+	visited = [[False for _ in range(n)] for _ in range(n)]
 
 	q = (Sx,Sy)
 
@@ -51,30 +54,29 @@ def main():
 
 	
 
+
+
 	res = (400,400)
 
 	gameDisplay = pygame.display.set_mode(res)
 
 
-	createChessboard(gameDisplay)
+	createChessboard(gameDisplay,n)
 
 	initializeQueen(Ty,Tx,gameDisplay)
 
+	
 	knight = pygame.image.load("knight.png")
 	
-	flag = 0
 
 	running = True
 
+	flag = 0
+
 	while running:
 
-		for event in pygame.event.get():
 
-				if event.type == pygame.QUIT:
-					running = False
-					break
-
-		while q:
+		if q:
 
 			t = q
 
@@ -84,6 +86,7 @@ def main():
 
 				pygame.draw.rect(gameDisplay,(200,0,0),(prevX*50+5,prevY*50+5,50-10,50-10))
 
+			
 			prevX,prevY = t[1],t[0]
 
 			flag = 1
@@ -96,21 +99,31 @@ def main():
 			if t == (Tx,Ty):
 
 				q = None
-				break
+				continue
 
 
 			q = neighbours(t,n,visited)
 
+			if q == None:
+				continue
+
 			visited[ q[0] ][ q[1] ] = True
 
-		# print("Target position ",(Tx,Ty)," reached: ",visited[Tx][Ty])
+
+		for event in pygame.event.get():
+
+			if event.type == pygame.QUIT:
+					
+				running = False
+				break
 
 
 
+	print("Target position ",(Tx,Ty)," reached: ",visited[Tx][Ty])
 
 	pygame.quit()
-
 	
+
 
 def neighbours(t,r,visited):
 
@@ -134,6 +147,8 @@ def neighbours(t,r,visited):
 			if not visited[ x[i][0] ][ x[i][1] ]:
 				
 				return x[i]
+
+
 
 
 main()
