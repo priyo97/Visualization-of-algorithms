@@ -1,15 +1,15 @@
 import pygame
 import time
 
-def createChessboard(gameDisplay):
+def createChessboard(gameDisplay,n):
 
 	gameDisplay.fill((255,255,255))
 
 	xdiff = 50
 	ydiff = 50
 
-	for h in range(8):
-		for w in range(8):
+	for h in range(n):
+		for w in range(n):
 			if not h % 2:
 				if not w % 2: 
 
@@ -40,11 +40,12 @@ def main():
 
 	n = int(input("Enter grid size:"))
 
+	Sx, Sy = [int(x) for x in input("Enter knight coords:").split()]
+	Tx, Ty = [int(x) for x in input("Enter queen coords:").split()]
+
 	visited = [[False for _ in range(n)] for _ in range(n)]
 
-	Sx, Sy = [int(x) for x in input().split()]
-	Tx, Ty = [int(x) for x in input().split()]
-
+	
 	q = [(Sx,Sy)]
 
 	visited[Sx][Sy] = True
@@ -56,31 +57,21 @@ def main():
 	gameDisplay = pygame.display.set_mode(res)
 
 
-	createChessboard(gameDisplay)
+	createChessboard(gameDisplay,n)
 
 	initializeQueen(Ty,Tx,gameDisplay)
 
 	knight = pygame.image.load("knight.png")
 	
+
 	flag = 0
 
 	running = True
 
 	while running:
 
-		for event in pygame.event.get():
 
-				if event.type == pygame.QUIT:
-					running = False
-					break
-
-		while q:
-
-			for event in pygame.event.get():
-
-				if event.type == pygame.QUIT:
-					running = False
-					break
+		if q:
 
 			t = q.pop(0)
 
@@ -89,9 +80,8 @@ def main():
 			if flag:
 
 				pygame.draw.rect(gameDisplay,(200,0,0),(prevX*50+5,prevY*50+5,50-10,50-10))
-				print(prevX,prevY)
 
-
+			
 			prevX,prevY = t[1],t[0]
 
 			flag = 1
@@ -103,11 +93,16 @@ def main():
 
 			if t == (Tx,Ty):
 
-				q = []
-				break
+				q = None
+				continue
 
 
 			N = neighbours(t,n)
+
+
+			if not N:
+				q = None
+				continue
 
 			for (Nx,Ny) in N:
 
@@ -116,10 +111,15 @@ def main():
 					q.append((Nx,Ny))
 					visited[Nx][Ny] = True
 
-		# print("Target position ",(Tx,Ty)," reached: ",visited[Tx][Ty])
+		
+		for event in pygame.event.get():
+
+				if event.type == pygame.QUIT:
+					running = False
+					break
 
 
-
+	print("Target position ",(Tx,Ty)," reached: ",visited[Tx][Ty])
 
 	pygame.quit()
 
