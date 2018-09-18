@@ -1,25 +1,17 @@
 import pygame
 import time
+from bfs import BFS
 
 def createChessboard(gameDisplay,n):
 
 	gameDisplay.fill((255,255,255))
 
-	xdiff = 50
-	ydiff = 50
+	xdiff = pixels
+	ydiff = pixels
 
 	for h in range(n):
 		for w in range(n):
-			if not h % 2:
-				if not w % 2: 
-
-					x = w*xdiff
-					y = h*ydiff
-
-					pygame.draw.rect(gameDisplay,(0,0,0),(x,y,xdiff,ydiff))
-
-			else:
-				if w % 2: 
+			if (not h % 2 and not w % 2) or (h % 2 and w % 2):
 
 					x = w*xdiff
 					y = h*ydiff
@@ -27,101 +19,106 @@ def createChessboard(gameDisplay,n):
 					pygame.draw.rect(gameDisplay,(0,0,0),(x,y,xdiff,ydiff))
 
 
-def initializeQueen(x,y,gameDisplay):
-
-	queen  = pygame.image.load("queen.png")
+def placeEntity(entity,x,y,gameDisplay):
 	
-	gameDisplay.blit(queen,(x*50+5,y*50+5))
+	gameDisplay.blit(entity,(x*pixels+5,y*pixels+5))
+
+
+
+def markVisited(prevX,prevY,gameDisplay):
+
+	pygame.draw.rect(gameDisplay,(200,0,0),(prevX*pixels+5,prevY*pixels+5,pixels-10,pixels-10))
+
 
 
 def main():
 
 	pygame.init()
 
+
+	# Taking input from user
+
 	n = int(input("Enter grid size:"))
 
 	Sx, Sy = [int(x) for x in input("Enter knight coords:").split()]
 	Tx, Ty = [int(x) for x in input("Enter queen coords:").split()]
 
-	visited = [[False for _ in range(n)] for _ in range(n)]
-	prev = [[None for _ in range(n)] for _ in range(n)]
-	
-	q = [(Sx,Sy)]
-
-	visited[Sx][Sy] = True
-
 	
 
-	res = (400,400)
+	# Setting up the screen and images
+
+	res = (n*pixels,n*pixels)
 
 	gameDisplay = pygame.display.set_mode(res)
 
-
-	createChessboard(gameDisplay,n)
-
-	initializeQueen(Ty,Tx,gameDisplay)
+	queen  = pygame.image.load("queen.png")
 
 	knight = pygame.image.load("knight.png")
 	
+	
+	
+	# Initializing the board and the algo
 
-	flag = 0
+
+	createChessboard(gameDisplay,n)
+	
+	placeEntity(queen,Ty,Tx,gameDisplay)	
+
+	b = BFS(n,Sx,Sy,Tx,Ty)
+
+
+
+	# game loop
 
 	running = True
 
 	while running:
 
 
-		if q:
-
-			t = q.pop(0)
-
-			gameDisplay.blit(knight,(t[1]*50+5,t[0]*50+5))
-
-			if flag:
-
-				pygame.draw.rect(gameDisplay,(200,0,0),(prevX*50+5,prevY*50+5,50-10,50-10))
-
+		if b.q:
 			
-			prevX,prevY = t[1],t[0]
+			# returns current node and previous node
 
-			flag = 1
+			t, prev = b.search()
+		
+			placeEntity(knight,t[1],t[0],gameDisplay)
+
+			markVisited(prev[1],prev[0],gameDisplay)
 
 			pygame.display.update()
 
-			time.sleep(.2)
+			time.sleep(1)
 
 
 			if t == (Tx,Ty):
 
-				q = None
-
-				time.sleep(3)
-
 				createChessboard(gameDisplay,n)
-				initializeQueen(Ty,Tx,gameDisplay)
-				gameDisplay.blit(knight,(Sy*50+5,Sx*50+5))
+				placeEntity(queen,Ty,Tx,gameDisplay)
+				placeEntity(knight,Sy,Sx,gameDisplay)
 
-				path = createPath(Sx,Sy,Tx,Ty,prev)
+				path = b.createPath()
 
 				for i,j in path[1:]:
 
-					pygame.draw.rect(gameDisplay,(200,0,0),(j*50+5,i*50+5,50-10,50-10))
+					markVisited(j,i,gameDisplay)
+
+				pygame.display.update() 
+		
+				continue
+
+			if b.q == []:
+
+				
+				createChessboard(gameDisplay,n)
+				
+				cross = pygame.image.load("cross.jpg")
+
+				placeEntity(cross,Ty,Tx,gameDisplay)
+				placeEntity(knight,Sy,Sx,gameDisplay)
 
 				pygame.display.update()
 				
-				continue
 
-
-			N = neighbours(t,n)
-
-			for (Nx,Ny) in N:
-
-				if not visited[Nx][Ny]:
-
-					q.append((Nx,Ny))
-					visited[Nx][Ny] = True
-					prev[Nx][Ny] = t
-		
 		for event in pygame.event.get():
 
 				if event.type == pygame.QUIT:
@@ -129,46 +126,11 @@ def main():
 					break
 
 
-	print("Target position ",(Tx,Ty)," reached: ",visited[Tx][Ty])
+	print("Target position ",(Tx,Ty)," reached: ",b.visited[Tx][Ty])
 
 	pygame.quit()
 
-	
 
-def neighbours(t,r):
-
-	n = []
-	x = [0]*8
-
-	x[0] = t[0]+2, t[1]+1
-	x[1] = t[0]+2, t[1]-1
-	x[2] = t[0]-2, t[1]+1
-	x[3] = t[0]-2, t[1]-1
-	x[4] = t[0]+1, t[1]+2
-	x[5] = t[0]+1, t[1]-2
-	x[6] = t[0]-1, t[1]+2
-	x[7] = t[0]-1, t[1]-2
-
-
-	for i in range(8):
-		if 0 <= x[i][0] < r and 0 <= x[i][1] < r:
-			n.append(x[i])
-
-	return n
-
-
-
-def createPath(Sx,Sy,Tx,Ty,prev):
-
-	path = []
-
-	while prev[Tx][Ty] != None:
-
-		path.append(prev[Tx][Ty])
-		Tx, Ty = prev[Tx][Ty]
-
-	return path[::-1] 
-
-
+pixels = 50
 
 main()
