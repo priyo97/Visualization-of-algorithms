@@ -44,7 +44,7 @@ def main():
 	Tx, Ty = [int(x) for x in input("Enter queen coords:").split()]
 
 	visited = [[False for _ in range(n)] for _ in range(n)]
-
+	prev = [[None for _ in range(n)] for _ in range(n)]
 	
 	q = [(Sx,Sy)]
 
@@ -88,21 +88,31 @@ def main():
 
 			pygame.display.update()
 
-			time.sleep(1)
+			time.sleep(.2)
 
 
 			if t == (Tx,Ty):
 
 				q = None
+
+				time.sleep(3)
+
+				createChessboard(gameDisplay,n)
+				initializeQueen(Ty,Tx,gameDisplay)
+				gameDisplay.blit(knight,(Sy*50+5,Sx*50+5))
+
+				path = createPath(Sx,Sy,Tx,Ty,prev)
+
+				for i,j in path[1:]:
+
+					pygame.draw.rect(gameDisplay,(200,0,0),(j*50+5,i*50+5,50-10,50-10))
+
+				pygame.display.update()
+				
 				continue
 
 
 			N = neighbours(t,n)
-
-
-			if not N:
-				q = None
-				continue
 
 			for (Nx,Ny) in N:
 
@@ -110,7 +120,7 @@ def main():
 
 					q.append((Nx,Ny))
 					visited[Nx][Ny] = True
-
+					prev[Nx][Ny] = t
 		
 		for event in pygame.event.get():
 
@@ -145,6 +155,20 @@ def neighbours(t,r):
 			n.append(x[i])
 
 	return n
+
+
+
+def createPath(Sx,Sy,Tx,Ty,prev):
+
+	path = []
+
+	while prev[Tx][Ty] != None:
+
+		path.append(prev[Tx][Ty])
+		Tx, Ty = prev[Tx][Ty]
+
+	return path[::-1] 
+
 
 
 main()
