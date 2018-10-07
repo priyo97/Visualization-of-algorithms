@@ -113,6 +113,7 @@ class Grid:
 		self.n = n
 		self.pixels = pixels
 		self.res = (n*pixels,n*pixels)
+
 		self.display = pygame.display.set_mode(self.res)
 
 		self.grid = [ Cell(i,j) for i in range(n) for j in range(n) ]
@@ -182,9 +183,10 @@ class Grid:
 		w = current.j * pixels
 		h = current.i * pixels
 
-		pygame.draw.rect(self.display,color,(w,h,pixels,pixels))
+		pygame.draw.rect(self.display,color,(w+5,h+5,pixels-10,pixels-10))
 
 		pygame.display.update()
+
 
 
 class Astar:
@@ -207,7 +209,7 @@ class Astar:
 
 		self.found = False
 
-		self.p = (-1,-1)
+		self.p = Cell(-1,-1)
 
 		self.distance[Sx][Sy] = 0
 
@@ -216,9 +218,13 @@ class Astar:
 
 		t = self.min_distance()
 
-		self.visited[t[0]][t[1]] = True
 
-		if t == (self.Tx,self.Ty):
+		i = t.i
+		j = t.j
+
+		self.visited[ i ][ j ] = True
+
+		if (i, j) == (self.Tx,self.Ty):
 
 			self.found = True
 
@@ -230,11 +236,11 @@ class Astar:
 
 		for (Nx,Ny) in N:
 
-			if self.distance[t[0]][t[1]] + 1 < self.distance[Nx][Ny]:
+			if self.distance[ i ][ j ] + 1 < self.distance[Nx][Ny]:
 
-				self.distance[Nx][Ny] = self.distance[t[0]][t[1]] + 1  
+				self.distance[Nx][Ny] = self.distance[ i ][ j ] + 1  
 			
-				self.prev[Nx][Ny] = t
+				self.prev[Nx][Ny] = (i,j)
 
 		
 		temp = self.p
@@ -246,8 +252,8 @@ class Astar:
 
 	def unvisited_neighbours(self,t,n):
 
-		i = t[0]
-		j = t[1]
+		i = t.i
+		j = t.j
 
 
 		r = []
@@ -287,6 +293,7 @@ class Astar:
 		while self.prev[self.Tx][self.Ty] != None:
 
 			path.append(self.prev[self.Tx][self.Ty])
+			
 			self.Tx, self.Ty = self.prev[self.Tx][self.Ty]
 
 		return path
@@ -305,7 +312,7 @@ class Astar:
 					if self.distance[i][j] + self.h[i][j] < m:
 
 						m = self.distance[i][j] + self.h[i][j]
-						idx = (i,j)
+						idx = self.grid[self.n*i+j]
 
 		return idx
 
