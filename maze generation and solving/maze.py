@@ -1,6 +1,10 @@
 from utility import DFS,Grid,Astar
 import pygame
 import time
+import os
+
+position = (720,200)
+os.environ['SDL_VIDEO_WINDOW_POS'] = str(position[0]) + "," + str(position[1])
 
 def main():
 
@@ -15,13 +19,17 @@ def main():
 
 	running = True
 
+	
+	red = (200,0,0)
+	green = (0,200,0)
+
 	while running:
 
 		if algo.stack:
 			
 			display.drawCanvas()
 
-			display.drawCurrent(algo.current,(200,0,0))
+			display.drawCurrent(algo.current,red)
 
 			algo.search(display)
 
@@ -36,33 +44,33 @@ def main():
 
 
 
-	Sx, Sy = [int(x) for x in input().split()]
-	Tx, Ty = [int(x) for x in input().split()]
+	Sx, Sy = [int(x) for x in input("Enter source coords:").split()]
+	Tx, Ty = [int(x) for x in input("Enter target coords:").split()]
 
 
 
 	algo = Astar(n,Sx,Sy,Tx,Ty,display.grid)
 	
+	display.drawCanvas()
+
 	while True:
 
 		if not algo.found:
 
 			t, prev = algo.search()
 
-			draw(display.display,t[0],t[1])
+			display.drawCurrent(t,green)
 
-			draw(display.display,prev[0],prev[1],color=False)
-
-			pygame.display.update()
+			display.drawCurrent(prev,red)
 
 			time.sleep(.2)
 
 
-			if t == (Tx,Ty):
+			if (t.i, t.j) == (Tx,Ty):
 
 				path = algo.createPath()
 
-				drawCanvas(display.display,path,display.grid)
+				drawPath(display.display,path,display.grid)
 				continue	
 
 		for event in pygame.event.get():
@@ -72,32 +80,8 @@ def main():
 
 
 
-# def draw(display,i,j,color=(200,0,0)):
 
-# 	w = j * pixels
-# 	h = i * pixels
-
-# 	pygame.draw.rect(display,color,(w,h,pixels,pixels))
-
-
-
-def draw(display,i,j,color=True):
-
-	w = j * pixels
-	h = i * pixels
-
-	# print(display)
-
-	if color:
-		pygame.draw.rect(display,(200,0,0),(w,h,pixels,pixels))
-	else:
-		pygame.draw.rect(display,(255,255,255),(w,h,pixels,pixels))
-
-	pygame.draw.rect(display,(0,0,0),(w,h,pixels,pixels),2)
-
-
-
-def drawCanvas(display,path,grid):
+def drawPath(display,path,grid):
 
 	display.fill((255,255,255))
 		
